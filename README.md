@@ -197,6 +197,7 @@ the `json_attribs` file used. For example:
       "mysql": {
         "server_root_password": "iloverandompasswordsbutthiswilldo",
         "server_repl_password": "iloverandompasswordsbutthiswilldo",
+        "server_backup_password": "iloverandompasswordsbutthiswilldo",
         "server_debian_password": "iloverandompasswordsbutthiswilldo"
       },
       "run_list":["recipe[mysql::server]"]
