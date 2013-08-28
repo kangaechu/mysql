@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-default['mysql']['bind_address']               = attribute?('cloud') ? cloud['local_ipv4'] : ipaddress
+default['mysql']['bind_address']               = node.attribute?('cloud') ? node.cloud['local_ipv4'] : node['ipaddress']
 default['mysql']['port']                       = 3306
 default['mysql']['nice']                       = 0
 
@@ -143,14 +143,18 @@ default['mysql']['auto-increment-increment']        = 1
 default['mysql']['auto-increment-offset']           = 1
 
 default['mysql']['allow_remote_root']               = false
+default['mysql']['remove_anonymous_users']          = false
+default['mysql']['remove_test_database']            = false
+default['mysql']['root_network_acl']                = nil
 default['mysql']['tunable']['character-set-server'] = "utf8"
 default['mysql']['tunable']['collation-server']     = "utf8_general_ci"
+default['mysql']['tunable']['lower_case_table_names']  = nil
 default['mysql']['tunable']['back_log']             = "128"
-default['mysql']['tunable']['key_buffer']           = "256M"
+default['mysql']['tunable']['key_buffer_size']           = "256M"
 default['mysql']['tunable']['myisam_sort_buffer_size']   = "8M"
 default['mysql']['tunable']['myisam_max_sort_file_size'] = "2147483648"
 default['mysql']['tunable']['myisam_repair_threads']     = "1"
-default['mysql']['tunable']['myisam_recover']            = "BACKUP"
+default['mysql']['tunable']['myisam-recover']            = "BACKUP"
 default['mysql']['tunable']['max_allowed_packet']   = "16M"
 default['mysql']['tunable']['max_connections']      = "800"
 default['mysql']['tunable']['max_connect_errors']   = "10"
@@ -159,12 +163,10 @@ default['mysql']['tunable']['connect_timeout']      = "10"
 default['mysql']['tunable']['tmp_table_size']       = "32M"
 default['mysql']['tunable']['max_heap_table_size']  = node['mysql']['tunable']['tmp_table_size']
 default['mysql']['tunable']['bulk_insert_buffer_size'] = node['mysql']['tunable']['tmp_table_size']
-default['mysql']['tunable']['myisam_recover']       = "BACKUP"
 default['mysql']['tunable']['net_read_timeout']     = "30"
 default['mysql']['tunable']['net_write_timeout']    = "30"
 default['mysql']['tunable']['table_cache']          = "128"
 
-default['mysql']['tunable']['thread_cache']         = "128"
 default['mysql']['tunable']['thread_cache_size']    = 8
 default['mysql']['tunable']['thread_concurrency']   = 10
 default['mysql']['tunable']['thread_stack']         = "256K"
@@ -173,8 +175,7 @@ default['mysql']['tunable']['read_buffer_size']     = "128k"
 default['mysql']['tunable']['read_rnd_buffer_size'] = "256k"
 default['mysql']['tunable']['join_buffer_size']     = "128k"
 default['mysql']['tunable']['wait_timeout']         = "180"
-default['mysql']['tunable']['open-files-limit']     = "8192"
-default['mysql']['tunable']['open-files']           = "1024"
+default['mysql']['tunable']['open-files-limit']     = "1024"
 
 default['mysql']['tunable']['sql_mode'] = nil
 
@@ -215,13 +216,12 @@ if node['cpu'].nil? or node['cpu']['total'].nil?
   default['mysql']['tunable']['innodb_thread_concurrency']       = "8"
   default['mysql']['tunable']['innodb_commit_concurrency']       = "8"
   default['mysql']['tunable']['innodb_read_io_threads']          = "8"
-  default['mysql']['tunable']['innodb_flush_log_at_trx_commit']  = "8"
 else
   default['mysql']['tunable']['innodb_thread_concurrency']       = "#{(Integer(node['cpu']['total'])) * 2}"
   default['mysql']['tunable']['innodb_commit_concurrency']       = "#{(Integer(node['cpu']['total'])) * 2}"
   default['mysql']['tunable']['innodb_read_io_threads']          = "#{(Integer(node['cpu']['total'])) * 2}"
-  default['mysql']['tunable']['innodb_flush_log_at_trx_commit']  = "#{(Integer(node['cpu']['total'])) * 2}"
 end
+default['mysql']['tunable']['innodb_flush_log_at_trx_commit']  = "1"
 default['mysql']['tunable']['innodb_support_xa']               = true
 default['mysql']['tunable']['innodb_table_locks']              = true
 default['mysql']['tunable']['skip-innodb-doublewrite']         = false
@@ -246,7 +246,7 @@ default['mysql']['log_dir'] = node['mysql']['data_dir']
 default['mysql']['log_files_in_group'] = false
 default['mysql']['innodb_status_file'] = false
 
-unless node['platform_family'] && node['platform_version'].to_i < 6
+unless node['platform_family'] == "rhel" && node['platform_version'].to_i < 6
   # older RHEL platforms don't support these options
   default['mysql']['tunable']['event_scheduler']  = 0
   default['mysql']['tunable']['table_open_cache'] = "128"
